@@ -4,17 +4,12 @@ use std::borrow::Cow;
 use bevy::{
     prelude::*,
     render::{
-        extract_resource::{ExtractResource, ExtractResourcePlugin},
-        render_asset::{RenderAsset, RenderAssetUsages},
-        render_graph::{self, RenderGraph, RenderLabel},
-        render_resource::{
+        extract_resource::{ExtractResource, ExtractResourcePlugin}, render_asset::{RenderAssetUsages, RenderAssets}, render_graph::{self, RenderGraph, RenderLabel}, render_resource::{
             binding_types::texture_storage_2d, BindGroup, BindGroupEntries, BindGroupLayout,
             BindGroupLayoutEntries, CachedComputePipelineId, CachedPipelineState,
             ComputePassDescriptor, ComputePipelineDescriptor, Extent3d, PipelineCache,
             ShaderStages, StorageTextureAccess, TextureDimension, TextureFormat, TextureUsages,
-        },
-        renderer::RenderDevice,
-        Render, RenderApp, RenderSet,
+        }, renderer::RenderDevice, texture::GpuImage, Render, RenderApp, RenderSet
     },
 };
 
@@ -134,7 +129,7 @@ struct GameOfLifeImageBindGroups([BindGroup; 2]);
 fn prepare_bind_group(
     mut commands: Commands,
     pipeline: Res<GameOfLifePipeline>,
-    gpu_images: Res<RenderAsset<GpuImage>>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
     game_of_life_images: Res<GameOfLifeImages>,
     render_device: Res<RenderDevice>,
 ) {
