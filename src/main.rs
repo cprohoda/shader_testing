@@ -9,7 +9,7 @@ use bevy::{
             BindGroupLayoutEntries, CachedComputePipelineId, CachedPipelineState,
             ComputePassDescriptor, ComputePipelineDescriptor, Extent3d, PipelineCache,
             ShaderStages, StorageTextureAccess, TextureDimension, TextureFormat, TextureUsages,
-        }, renderer::RenderDevice, texture::GpuImage, Render, RenderApp, RenderSet
+        }, renderer::{RenderContext, RenderDevice}, texture::GpuImage, Render, RenderApp, RenderSet
     },
 };
 
@@ -237,7 +237,7 @@ impl render_graph::Node for GameOfLifeNode {
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline.update_pipeline)
                 {
-                    self.state = GameOfLifeState::Update(0);
+                    self.state = GameOfLifeState::Update(1);
                 }
             }
             GameOfLifeState::Update(0) => {
@@ -250,11 +250,11 @@ impl render_graph::Node for GameOfLifeNode {
         }
     }
 
-    fn run<'w>(
+    fn run(
         &self,
         _graph: &mut render_graph::RenderGraphContext,
-        render_context: &mut bevy::render::renderer::RenderContext<'w>,
-        world: &'w World,
+        render_context: &mut RenderContext,
+        world: &World,
     ) -> Result<(), render_graph::NodeRunError> {
         let bind_groups = &world.resource::<GameOfLifeImageBindGroups>().0;
         let pipeline_cache = world.resource::<PipelineCache>();
@@ -270,9 +270,8 @@ impl render_graph::Node for GameOfLifeNode {
                 let init_pipeline = pipeline_cache
                     .get_compute_pipeline(pipeline.init_pipeline)
                     .unwrap();
-
                 pass.set_bind_group(0, &bind_groups[0], &[]);
-                pass.set_pipeline(&init_pipeline);
+                pass.set_pipeline(init_pipeline);
                 pass.dispatch_workgroups(SIZE.0 / WORKGROUP_SIZE, SIZE.1 / WORKGROUP_SIZE, 1);
             }
             GameOfLifeState::Update(index) => {
@@ -280,7 +279,7 @@ impl render_graph::Node for GameOfLifeNode {
                     .get_compute_pipeline(pipeline.update_pipeline)
                     .unwrap();
                 pass.set_bind_group(0, &bind_groups[index], &[]);
-                pass.set_pipeline(&update_pipeline);
+                pass.set_pipeline(update_pipeline);
                 pass.dispatch_workgroups(SIZE.0 / WORKGROUP_SIZE, SIZE.1 / WORKGROUP_SIZE, 1);
             }
         };
